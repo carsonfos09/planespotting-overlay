@@ -1,0 +1,66 @@
+/* Now Spotting box — big, readable, centered above the ticker */
+#now-spotting {
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+  padding: 20px 30px;
+  border-radius: 12px;
+  font-size: 1.8rem;
+  font-weight: 600;
+  width: 80%;
+  max-width: 700px;
+  margin: 20px auto 10px auto;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  user-select: none;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  letter-spacing: 0.05em;
+
+  /* Text clarity fixes */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Ticker container */
+#ticker {
+  width: 100%;
+  overflow: hidden;
+  background: rgba(20, 20, 20, 0.85);
+  padding: 10px 0;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 999;
+}
+
+/* Ticker content — scrolling text */
+#ticker-content {
+  display: inline-block;
+  white-space: nowrap;
+  color: #ddd;
+  font-size: 1.1rem;
+  padding-left: 100%;
+  animation: scroll-left 90s linear infinite;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  user-select: none;
+
+  /* Text clarity fixes */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
