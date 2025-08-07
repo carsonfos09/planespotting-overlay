@@ -1,28 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planespotting Overlay</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Planespotting Overlay</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div class="overlay">
-    <!-- Top "Now Spotting" section -->
-    <div class="now-spotting">
-        <span id="ns-flight"></span> • 
-        <span id="ns-airline"></span> • 
-        <span id="ns-aircraft"></span> • 
-        <span id="ns-route"></span>
+  <!-- Now Spotting Big Box -->
+  <div id="now-spotting">
+    <div id="now-spotting-label">NOW SPOTTING</div>
+    <div class="flight-info">
+      <div>Flight: <span id="ns-flight"></span></div>
+      <div>Airline: <span id="ns-airline"></span></div>
+      <div>Aircraft: <span id="ns-aircraft"></span></div>
+      <div>Route: <span id="ns-route"></span></div>
+      <div>Duration: <span id="ns-duration"></span></div>
     </div>
+  </div>
 
-    <!-- Bottom ticker -->
-    <div class="ticker">
-        <div id="ticker-content"></div>
-    </div>
-</div>
+  <!-- Bottom Ticker Bar -->
+  <div id="ticker">
+    <div id="ticker-content"></div>
+  </div>
 
-<script src="script.js"></script>
+  <!-- Your script.js should be loaded here -->
+  <script src="script.js"></script>
 </body>
 </html>
