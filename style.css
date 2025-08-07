@@ -1,58 +1,71 @@
-/* Now Spotting box — big, readable, centered above the ticker */
+/* Now Spotting box — big and labeled */
 #now-spotting {
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.85);
   color: #ffffff;
-  padding: 20px 30px;
-  border-radius: 12px;
-  font-size: 1.8rem;
-  font-weight: 600;
+  padding: 30px 40px;
+  border-radius: 14px;
+  font-size: 2.8rem;
+  font-weight: 700;
   width: 80%;
   max-width: 700px;
-  margin: 20px auto 10px auto;
+  margin: 25px auto 15px auto;
   text-align: center;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
   user-select: none;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
+  position: relative;
 
-  /* Text clarity fixes */
+  /* Text clarity */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+}
+
+/* Label "Now Spotting" at the top */
+#now-spotting::before {
+  content: "Now Spotting";
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  letter-spacing: 0.1em;
+  color: #f0f0f0;
+  text-transform: uppercase;
 }
 
 /* Ticker container */
 #ticker {
   width: 100%;
   overflow: hidden;
-  background: rgba(20, 20, 20, 0.85);
-  padding: 10px 0;
+  background: rgba(20, 20, 20, 0.9);
+  padding: 15px 0;
   position: fixed;
   bottom: 0;
   left: 0;
   z-index: 999;
 }
 
-/* Ticker content — scrolling text */
+/* Ticker content — way slower scroll */
 #ticker-content {
   display: inline-block;
   white-space: nowrap;
   color: #ddd;
-  font-size: 1.1rem;
+  font-size: 1.5rem;
   padding-left: 100%;
-  animation: scroll-left 90s linear infinite;
+  animation: scroll-left 180s linear infinite; /* slowed down to 3 minutes */
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   user-select: none;
 
-  /* Text clarity fixes */
+  /* Text clarity */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.06em;
 }
 
