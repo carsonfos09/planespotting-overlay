@@ -1,55 +1,42 @@
-// URL to your published Google Sheet CSVs
-// Replace each with your actual published CSV link
-const nowSpottingCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTm21g5xvevVszFZYv8ajDgZ0IuMvQh3BgtgzbL_WH4QoqB_4LUO7yI2csaFTDj41vGqJVGGO5NR0Ns/pub?gid=679478748&single=true&output=csv";
-const tickerCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTm21g5xvevVszFZYv8ajDgZ0IuMvQh3BgtgzbL_WH4QoqB_4LUO7yI2csaFTDj41vGqJVGGO5NR0Ns/pub?gid=0&single=true&output=csv";
+// ----------------------
+// TICKER (AviationStack)
+// ----------------------
+const API_KEY = 'ba001d604284a700ba4b2c54f5d3b7ff';
 
-// Function to fetch and parse a CSV
-async function fetchCSV(url) {
-    const response = await fetch(url);
-    const text = await response.text();
-    return parseCSV(text);
+// URLs for arrivals and departures
+const ARRIVALS_URL = `http://api.aviationstack.com/v1/flights?access_key=${API_KEY}&arr_iata=SAN`;
+const DEPARTURES_URL = `http://api.aviationstack.com/v1/flights?access_key=${API_KEY}&dep_iata=SAN`;
+
+async function fetchTickerData() {
+  try {
+    // Fetch arrivals & departures in parallel
+    const [arrivalsRes, departuresRes] = await Promise.all([
+      fetch(ARRIVALS_URL),
+      fetch(DEPARTURES_URL)
+    ]);
+
+    const arrivalsData = await arrivalsRes.json();
+    const departuresData = await departuresRes.json();
+
+    const arrivals = arrivalsData.data || [];
+    const departures = departuresData.data || [];
+
+    // Build ticker text (limit to first 3 each)
+    let tickerText = [
+      ...arrivals.slice(0, 3).map(f => `Arrival: ${f.airline.name} ${f.flight.iata} from ${f.departure.iata}`),
+      ...departures.slice(0, 3).map(f => `Departure: ${f.airline.name} ${f.flight.iata} to ${f.arrival.iata}`)
+    ].join("  •  ");
+
+    document.getElementById('tickerContent').textContent = tickerText;
+
+  } catch (error) {
+    console.error('Error fetching ticker data:', error);
+    document.getElementById('tickerContent').textContent = "Error loading flight data";
+  }
 }
 
-// CSV parser
-function parseCSV(text) {
-    return text.trim().split("\n").map(row => row.split(","));
-}
+// Initial fetch when page loads
+fetchTickerData();
 
-// Fade update for Now Spotting
-function updateNowSpotting(text) {
-    const nowSpottingEl = document.getElementById("now-spotting-text");
-    nowSpottingEl.style.opacity = 0;
-    setTimeout(() => {
-        nowSpottingEl.textContent = text;
-        nowSpottingEl.style.opacity = 1;
-    }, 300); // fade timing
-}
-
-// Update Ticker
-function updateTicker(text) {
-    document.getElementById("ticker-text").textContent = text;
-}
-
-// Main refresh function
-async function refreshData() {
-    try {
-        // Get Now Spotting data
-        const nowSpottingRows = await fetchCSV(nowSpottingCsvUrl);
-        const nowSpottingValue = nowSpottingRows[1][0]; // Row 2, Col A
-        updateNowSpotting(nowSpottingValue);
-
-        // Get Ticker data
-        const tickerRows = await fetchCSV(tickerCsvUrl);
-        const tickerValue = tickerRows[1][0]; // Row 2, Col A
-        updateTicker(tickerValue);
-
-    } catch (err) {
-        console.error("Error fetching CSV data:", err);
-    }
-}
-
-// Refresh every 30 seconds
-setInterval(refreshData, 30000);
-
-// Initial load
-refreshData();
+// Refresh every 30 minutes (2 API calls each refresh)
+setInterval(fetchTickerData, 30 * 60 * 1000);
