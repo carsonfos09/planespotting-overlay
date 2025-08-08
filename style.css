@@ -16,8 +16,8 @@ body {
   position: absolute;
   bottom: 50px; /* sits just above ticker */
   left: 0;
-  width: 25%; /* quarter of the screen */
-  height: 25vw; /* makes it about square */
+  width: 20%; /* quarter of the screen */
+  height: 15vw; /* makes it about square */
   background-color: #0056b3; /* blue background */
   color: white;
   padding: 10px;
