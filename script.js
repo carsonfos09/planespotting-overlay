@@ -32,8 +32,8 @@ const airportCode = 'SAN';
 
 async function updateTicker() {
   try {
-    const arrivalsRes = await fetch(`https://api.aviationstack.com/v1/flights?access_key=${API_KEY}&arr_iata=${airportCode}`);
-    const departuresRes = await fetch(`https://api.aviationstack.com/v1/flights?access_key=${API_KEY}&dep_iata=${airportCode}`);
+    const arrivalsRes = await fetch(`https://api.aviationstack.com/v1/flights?access_key=${API_KEY}&arr_iata=${SAN}`);
+    const departuresRes = await fetch(`https://api.aviationstack.com/v1/flights?access_key=${API_KEY}&dep_iata=${SAN}`);
 
     const arrivalsData = await arrivalsRes.json();
     const departuresData = await departuresRes.json();
