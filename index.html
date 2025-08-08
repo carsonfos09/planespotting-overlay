@@ -1,49 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Now Spotting Overlay</title>
+
+  <!-- League Spartan font -->
   <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
   <div id="overlay">
-    <!-- Now Spotting Block -->
     <div id="nowSpottingBox">
-      <span class="title">NOW SPOTTING</span>
-      <span class="content" id="nowSpottingText">Train 1234 - Westbound</span>
+      <span class="title">Now Spotting</span>
+      <span class="content" id="nowSpottingContent">No train spotted yet</span>
     </div>
 
-    <!-- Ticker -->
     <div id="tickerWrapper">
       <div id="ticker">
-        <span>Breaking: New locomotives arriving soon • Amtrak service updates • Weather delay in the area •</span>
+        <span id="tickerContent">Welcome to the live spotting feed — Updates appear here</span>
       </div>
     </div>
   </div>
 
-  <script>
-    // Example fade update for Now Spotting
-    function updateNowSpotting(newText) {
-      const textElement = document.getElementById('nowSpottingText');
-      textElement.classList.add('fade-out');
-      setTimeout(() => {
-        textElement.textContent = newText;
-        textElement.classList.remove('fade-out');
-        textElement.classList.add('fade-in');
-      }, 500);
-      setTimeout(() => {
-        textElement.classList.remove('fade-in');
-      }, 1000);
-    }
-
-    // Example test update after 3 seconds
-    setTimeout(() => {
-      updateNowSpotting("Train 5678 - Eastbound");
-    }, 3000);
-  </script>
-
+  <!-- JS -->
+  <script src="script.js"></script>
 </body>
 </html>
