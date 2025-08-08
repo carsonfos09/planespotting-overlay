@@ -58,5 +58,5 @@ updateNowSpotting();
 updateTicker();
 
 // Refresh intervals
-setInterval(updateNowSpotting, 30000);   // every 30 sec
-setInterval(updateTicker, 600000);       // every 10 min
+setInterval(updateNowSpotting, 10000);   // every 10 sec
+setInterval(updateTicker, 120000);       // every 30 min
