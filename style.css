@@ -1,78 +1,77 @@
-/* Now Spotting box */
-#now-spotting {
-  background: rgba(0, 0, 0, 0.85);
+/* General styling */
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  font-family: 'League Spartan', sans-serif;
   color: white;
-  width: 320px;
-  margin: 0 0 10px 20px;
-  padding: 20px 25px;
-  border-radius: 12px;
-  box-shadow: 0 0 20px rgba(255,255,255,0.35);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  user-select: none;
-  text-align: left;
-  position: fixed;
-  bottom: 60px;
+}
+
+/* Overlay container */
+#overlay {
+  position: relative;
+  width: 100%;
+}
+
+/* NOW SPOTTING Box */
+#nowSpottingBox {
+  position: absolute;
+  bottom: 60px; /* Above ticker */
   left: 20px;
-  z-index: 1000;
+  background-color: #0056b3; /* Blue background */
+  padding: 10px 20px;
+  border-radius: 8px;
+  display: inline-block;
 }
 
-/* Label inside the box */
-#now-spotting-label {
+#nowSpottingBox .title {
+  display: block;
+  font-size: 22px;
   font-weight: 700;
-  font-size: 1.6rem;
-  letter-spacing: 0.15em;
-  margin-bottom: 12px;
-  color: #fff;
-  text-transform: uppercase;
+  margin-bottom: 5px;
 }
 
-/* Flight info lines */
-#now-spotting .flight-info div {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin: 6px 0;
-  letter-spacing: 0.04em;
-  color: #ddd;
-  text-shadow: 0 0 2px rgba(0,0,0,0.6);
+#nowSpottingBox .content {
+  font-size: 18px;
+  font-weight: 400;
+  transition: opacity 0.5s ease-in-out;
 }
 
-/* Ticker container */
-#ticker {
+/* Fade animation classes */
+.fade-out {
+  opacity: 0;
+}
+
+.fade-in {
+  opacity: 1;
+}
+
+/* Ticker */
+#tickerWrapper {
+  position: absolute;
+  bottom: 0;
   width: 100%;
   overflow: hidden;
-  background: rgba(20, 20, 20, 0.95);
-  padding: 20px 0;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  z-index: 999;
+  background-color: #0056b3; /* Blue background */
 }
 
-/* Ticker scrolling text */
-#ticker-content {
+#ticker {
   display: inline-block;
   white-space: nowrap;
-  color: #eee;
-  font-size: 2rem;
-  font-weight: 700;
   padding-left: 100%;
-  animation: scroll-left 240s linear infinite;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  user-select: none;
-  letter-spacing: 0.06em;
-
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  animation: tickerMove 20s linear infinite; /* Adjust speed here */
 }
 
-@keyframes scroll-left {
-  0% {
+#ticker span {
+  font-size: 16px; /* Smaller font */
+  color: white;
+}
+
+@keyframes tickerMove {
+  from {
     transform: translateX(0%);
   }
-  100% {
+  to {
     transform: translateX(-100%);
   }
 }
