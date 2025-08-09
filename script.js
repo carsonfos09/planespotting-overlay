@@ -19,30 +19,29 @@ function updateTime() {
 
 // ===== WEATHER FUNCTION =====
 async function fetchWeather() {
-  if (!weatherApiKey || weatherApiKey.trim() === '') {
+  if (!weatherApiKey) {
     weatherInfoEl.textContent = 'NO WEATHER API KEY';
     return;
   }
 
   try {
-    const url = `http://api.weatherstack.com/current?access_key=5fb5688ea7730de79b414572ecbb2638&query=San Diego
-`;
+    const url = `http://api.weatherstack.com/current?access_key=${weatherApiKey}&query=San Diego`;
     const res = await fetch(url);
     const data = await res.json();
 
-    if (!data.weather || !data.main) {
+    if (!data.current) {
       weatherInfoEl.textContent = 'WEATHER DATA UNAVAILABLE';
       return;
     }
 
-    const description = data.weather[0].description.toUpperCase();
-    const temp = Math.round(data.main.temp);
+    const description = data.current.weather_descriptions[0].toUpperCase();
+    const temp = Math.round(data.current.temperature);
     weatherInfoEl.textContent = `${description} | ${temp}°F`;
   } catch (err) {
-    console.error('Error fetching weather:', err);
     weatherInfoEl.textContent = 'ERROR LOADING WEATHER';
   }
 }
+
 
 // ===== FLIGHT DATA FUNCTION (placeholder) =====
 async function fetchFlights() {
