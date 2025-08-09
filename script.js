@@ -1,7 +1,7 @@
 // Globals for control panel inputs
-let aviationApiKey = '';
-let googleSheetCsv = '';
-let weatherApiKey = '';
+let aviationApiKey = 'ba001d604284a700ba4b2c54f5d3b7ff';
+let googleSheetCsv = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTm21g5xvevVszFZYv8ajDgZ0IuMvQh3BgtgzbL_WH4QoqB_4LUO7yI2csaFTDj41vGqJVGGO5NR0Ns/pub?gid=679478748&single=true&output=csv';
+let weatherApiKey = '5fb5688ea7730de79b414572ecbb2638';
 let tickerSpeed = 50; // ms per step
 
 // Elements
