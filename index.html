@@ -1,30 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>San Diego Planespotting Livestream</title>
-  <link href="https://fonts.googleapis.com/css2?family=League+Spartan&display=swap" rel="stylesheet" />
+
+  <!-- League Spartan -->
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- NOW SPOTTING BOX -->
-  <div id="now-spotting-box">
-    <div id="now-spotting-title">NOW SPOTTING</div>
-    <div id="now-spotting-content">
-      <div id="now-spotting-left"></div>
-      <div id="now-spotting-right"></div>
+  <!-- NOW SPOTTING (top-left) -->
+  <div id="now-spotting" aria-live="polite">
+    <div id="now-spotting-header">NOW SPOTTING</div>
+    <div id="now-spotting-columns">
+      <div id="now-spotting-left" class="ns-col"></div>
+      <div id="now-spotting-right" class="ns-col"></div>
     </div>
   </div>
 
-  <!-- WEATHER & TIME BOX -->
-  <div id="weather-time-box">
+  <!-- WEATHER & TIME (top-right) -->
+  <div id="weather-time" aria-live="polite">
     <div id="weather-info">LOADING WEATHER...</div>
     <div id="current-time">--:--:--</div>
   </div>
 
-  <!-- FLIGHT TICKER -->
-  <div id="flight-ticker-container">
+  <!-- FLIGHT TICKER (bottom) -->
+  <div id="flight-ticker-container" role="region" aria-label="flight ticker">
     <div id="flight-ticker"></div>
   </div>
 
