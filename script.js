@@ -25,7 +25,8 @@ async function fetchWeather() {
   }
 
   try {
-    const url = `https://api.openweathermap.org/data/2.5/weather?id=${weatherCityId}&units=${weatherUnits}&appid=${weatherApiKey}`;
+    const url = `http://api.weatherstack.com/current?access_key=5fb5688ea7730de79b414572ecbb2638&query=San Diego
+`;
     const res = await fetch(url);
     const data = await res.json();
 
