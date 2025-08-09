@@ -2,30 +2,64 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Now Spotting Overlay</title>
-
-  <!-- League Spartan font -->
-  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;700&display=swap" rel="stylesheet">
-
-  <!-- CSS -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>San Diego Planespotting Livestream</title>
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="overlay">
-    <div id="nowSpottingBox">
-      <span class="title">Now Spotting</span>
-      <span class="content" id="nowSpottingContent"></span>
-    </div>
+  <!-- Control Panel -->
+  <div id="control-panel">
+    <h2>CONTROL PANEL</h2>
+    <label>
+      AviationStack API Key: 
+      <input type="text" id="aviationApiKey" placeholder="ba001d604284a700ba4b2c54f5d3b7ff" />
+    </label>
+    <label>
+      Google Sheet CSV URL:
+      <input type="text" id="googleSheetCsv" placeholder="https://docs.google.com/spreadsheets/d/e/2PACX-1vTm21g5xvevVszFZYv8ajDgZ0IuMvQh3BgtgzbL_WH4QoqB_4LUO7yI2csaFTDj41vGqJVGGO5NR0Ns/pub?gid=679478748&single=true&output=csv" />
+    </label>
+    <label>
+      OpenWeatherMap API Key:
+      <input type="text" id="weatherApiKey" placeholder="5fb5688ea7730de79b414572ecbb2638" />
+    </label>
+    <label>
+      Ticker Speed (ms per move):
+      <input type="number" id="tickerSpeed" value="50" min="10" max="200" />
+    </label>
+    <button id="applySettings">Apply Settings</button>
+  </div>
 
-    <div id="tickerWrapper">
-      <div id="ticker">
-        <span id="tickerContent"></span>
+  <!-- NOW SPOTTING BOX -->
+  <div id="now-spotting">
+    <div id="now-spotting-header">NOW SPOTTING</div>
+    <div id="spotting-content">
+      <div id="headers-column">
+        <div>FLIGHT NUMBER</div>
+        <div>AIRLINE</div>
+        <div>AIRCRAFT</div>
+        <div>ROUTE</div>
+      </div>
+      <div id="data-column">
+        <div id="flightNumber">-</div>
+        <div id="airline">-</div>
+        <div id="aircraft">-</div>
+        <div id="route">-</div>
       </div>
     </div>
   </div>
 
-  <!-- JS -->
+  <!-- TIME & WEATHER BOX -->
+  <div id="time-weather">
+    <div id="current-time">--:--:--</div>
+    <div id="weather-info">Loading weather...</div>
+  </div>
+
+  <!-- FLIGHT TICKER -->
+  <div id="flight-ticker-container">
+    <div id="flight-ticker"></div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
