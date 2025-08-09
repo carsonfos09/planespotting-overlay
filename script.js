@@ -98,9 +98,11 @@ async function fetchSheetData() {
 }
 
 // Update live time every second
-function updateTime() {
-  const now = new Date();
-  currentTimeEl.textContent = now.toLocaleTimeString('en-US', { hour12: false });
+document.addEventListener('DOMContentLoaded', () => {
+  updateTime(); // show time immediately
+  setInterval(updateTime, 1000); // refresh every second
+});
+
 }
 
 // Fetch live weather from OpenWeatherMap API for San Diego
