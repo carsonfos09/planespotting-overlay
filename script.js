@@ -37,6 +37,7 @@ async function fetchWeather() {
     const url = `http://api.weatherstack.com/current?access_key=${weatherApiKey}&query=San Diego`;
     const res = await fetch(url);
     const data = await res.json();
+    console.log('Weather API data:', data); // Debug log
 
     if (!data.current) {
       weatherInfoEl.textContent = 'WEATHER DATA UNAVAILABLE';
@@ -46,7 +47,7 @@ async function fetchWeather() {
     const description = data.current.weather_descriptions[0].toUpperCase();
     const temp = Math.round(data.current.temperature);
     weatherInfoEl.textContent = `${description} | ${temp}°F`;
-  } catch (err) {
+  } catch {
     weatherInfoEl.textContent = 'ERROR LOADING WEATHER';
   }
 }
@@ -92,8 +93,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateTime, 1000);
 
   // Fetch weather immediately and every hour
-  fetchWeather();
-  setInterval(fetchWeather, 3600000); // 3600000ms = 1 hour
+ fetchWeather();
+setInterval(fetchWeather, 3600000);
 
   document.addEventListener('DOMContentLoaded', () => {
   fetchFlights();
