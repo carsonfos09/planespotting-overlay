@@ -26,6 +26,7 @@ function updateTime() {
   const now = new Date();
   currentTimeEl.textContent = now.toLocaleTimeString('en-US', { hour12: false });
 }
+}
 
 // ===== WEATHER FUNCTION =====
 async function fetchWeather() {
@@ -90,8 +91,8 @@ async function fetchFlights() {
 // ===== INIT FUNCTIONS ON DOM LOAD =====
 document.addEventListener('DOMContentLoaded', () => {
   // Start live time updating
-  updateTime();
-  setInterval(updateTime, 1000);
+ updateTime(); // update immediately
+setInterval(updateTime, 1000); // update every second
 
   // Fetch weather immediately and every hour
  fetchWeather();
