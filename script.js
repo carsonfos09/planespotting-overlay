@@ -1,62 +1,144 @@
-// --- Google Sheet Now Spotting ---
-const sheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTm21g5xvevVszFZYv8ajDgZ0IuMvQh3BgtgzbL_WH4QoqB_4LUO7yI2csaFTDj41vGqJVGGO5NR0Ns/pub?gid=679478748&single=true&output=csv';  // Replace with your published CSV URL
-
-async function updateNowSpotting() {
-  try {
-    const response = await fetch(sheetURL);
-    const data = await response.text();
-
-    // Parse CSV rows
-    const rows = data.split('\n').map(row => row.split(','));
-
-    if (rows.length >= 2) {
-      const headers = rows[0];
-      const firstData = rows[1];
-
-      // Build display string: Header: Value | Header: Value | ...
-      const displayText = headers.map((header, i) => `${header.trim()}: ${firstData[i].trim()}`).join(' | ');
-
-      document.getElementById('nowSpottingContent').textContent = displayText;
-    } else {
-      document.getElementById('nowSpottingContent').textContent = 'No data available';
-    }
-  } catch (error) {
-    console.error('Error fetching Google Sheet:', error);
-    document.getElementById('nowSpottingContent').textContent = 'Error loading data';
-  }
+/* Reset & basics */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'League Spartan', sans-serif;
+  text-transform: uppercase;
+  color: white;
 }
 
-// --- AviationStack Ticker ---
-const API_KEY = 'ba001d604284a700ba4b2c54f5d3b7ff';
-const airportCode = 'SAN';
-
-async function updateTicker() {
-  try {
-    const arrivalsRes = await fetch(`https://api.aviationstack.com/v1/flights?access_key=${API_KEY}&arr_iata=${SAN}`);
-    const departuresRes = await fetch(`https://api.aviationstack.com/v1/flights?access_key=${API_KEY}&dep_iata=${SAN}`);
-
-    const arrivalsData = await arrivalsRes.json();
-    const departuresData = await departuresRes.json();
-
-    const arrivals = arrivalsData.data || [];
-    const departures = departuresData.data || [];
-
-    const tickerFlights = [
-      ...arrivals.slice(0, 3).map(f => `Arrival: ${f.airline.name} ${f.flight.iata} from ${f.departure.iata}`),
-      ...departures.slice(0, 3).map(f => `Departure: ${f.airline.name} ${f.flight.iata} to ${f.arrival.iata}`)
-    ];
-
-    document.getElementById('tickerContent').textContent = tickerFlights.join('  •  ') || 'No flight data available';
-  } catch (error) {
-    console.error('Error fetching ticker data:', error);
-    document.getElementById('tickerContent').textContent = 'Error loading flight data';
-  }
+body {
+  background-color: #2c3e70; /* matted blue */
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  position: relative;
+  overflow: hidden;
 }
 
-// Run on page load
-updateNowSpotting();
-updateTicker();
+/* Control Panel */
+#control-panel {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: #1f2b47;
+  padding: 15px;
+  border-radius: 8px;
+  width: 320px;
+  font-size: 14px;
+  z-index: 10;
+  color: white;
+}
 
-// Refresh intervals
-setInterval(updateNowSpotting, 10000);   // every 10 sec
-setInterval(updateTicker, 120000);       // every 30 min
+#control-panel h2 {
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+#control-panel label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+#control-panel input {
+  width: 100%;
+  padding: 5px;
+  margin-top: 4px;
+  border-radius: 4px;
+  border: none;
+  font-family: 'League Spartan', sans-serif;
+  font-size: 14px;
+}
+
+#control-panel button {
+  padding: 8px 12px;
+  background-color: #1a73e8;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: white;
+  font-weight: 700;
+}
+
+/* NOW SPOTTING BOX */
+#now-spotting {
+  position: fixed;
+  left: 20px;
+  top: 20%;
+  background: #1f2b47;
+  border-radius: 12px;
+  padding: 15px 20px;
+  width: 22vw;
+  min-width: 280px;
+  max-width: 350px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  z-index: 5;
+}
+
+#now-spotting-header {
+  font-weight: 700;
+  font-size: 18px;
+  margin-bottom: 12px;
+  text-align: center;
+  letter-spacing: 1.5px;
+}
+
+#spotting-content {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+#headers-column div,
+#data-column div {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+/* Time & Weather box */
+#time-weather {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #1f2b47;
+  border-radius: 10px;
+  padding: 10px 15px;
+  min-width: 140px;
+  max-width: 180px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.4);
+  font-size: 14px;
+  text-align: center;
+  z-index: 5;
+}
+
+#current-time {
+  font-weight: 700;
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+/* Flight ticker */
+#flight-ticker-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #1f2b47;
+  overflow: hidden;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.4);
+  z-index: 5;
+}
+
+#flight-ticker {
+  white-space: nowrap;
+  display: inline-block;
+  padding-left: 100%;
+  will-change: transform;
+  font-size: 16px;
+  font-weight: 600;
+}
