@@ -1,144 +1,183 @@
-/* Reset & basics */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'League Spartan', sans-serif;
-  text-transform: uppercase;
-  color: white;
+// Globals for control panel inputs
+let aviationApiKey = '';
+let googleSheetCsv = '';
+let weatherApiKey = '';
+let tickerSpeed = 50; // ms per step
+
+// Elements
+const flightTicker = document.getElementById('flight-ticker');
+const flightNumberEl = document.getElementById('flightNumber');
+const airlineEl = document.getElementById('airline');
+const aircraftEl = document.getElementById('aircraft');
+const routeEl = document.getElementById('route');
+
+const currentTimeEl = document.getElementById('current-time');
+const weatherInfoEl = document.getElementById('weather-info');
+
+const aviationInput = document.getElementById('aviationApiKey');
+const googleSheetInput = document.getElementById('googleSheetCsv');
+const weatherInput = document.getElementById('weatherApiKey');
+const tickerSpeedInput = document.getElementById('tickerSpeed');
+const applyBtn = document.getElementById('applySettings');
+
+let tickerPosition = 0;
+let tickerText = '';
+let tickerAnimationFrame;
+
+// Initialize control panel defaults
+function initControls() {
+  aviationInput.value = '';
+  googleSheetInput.value = '';
+  weatherInput.value = '';
+  tickerSpeedInput.value = tickerSpeed;
 }
 
-body {
-  background-color: #2c3e70; /* matted blue */
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  position: relative;
-  overflow: hidden;
+// Fetch flights data from AviationStack API
+async function fetchFlights() {
+  if (!aviationApiKey) return;
+
+  try {
+    // Example endpoint for departures & arrivals for San Diego (IATA: SAN)
+    const url = `https://api.aviationstack.com/v1/flights?access_key=${aviationApiKey}&dep_iata=SAN&arr_iata=SAN&limit=15`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.data) return;
+
+    // Build ticker string: FlightNumber | Airline | Route | Aircraft ...
+    tickerText = data.data
+      .map(
+        (f) =>
+          `${f.flight.iata || 'N/A'} | ${f.airline.name || 'N/A'} | ${
+            f.departure.iata || 'N/A'
+          }-${f.arrival.iata || 'N/A'} | ${f.aircraft.registration || 'N/A'}`
+      )
+      .join('    —    ');
+
+    flightTicker.textContent = tickerText;
+  } catch (err) {
+    console.error('Error fetching flights:', err);
+    tickerText = 'ERROR FETCHING FLIGHTS';
+    flightTicker.textContent = tickerText;
+  }
 }
 
-/* Control Panel */
-#control-panel {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  background: #1f2b47;
-  padding: 15px;
-  border-radius: 8px;
-  width: 320px;
-  font-size: 14px;
-  z-index: 10;
-  color: white;
+// Fetch Google Sheet CSV and parse second row to show in NOW SPOTTING box
+async function fetchSheetData() {
+  if (!googleSheetCsv) return;
+
+  try {
+    const res = await fetch(googleSheetCsv);
+    const text = await res.text();
+
+    // CSV parsing basic (assumes no commas inside fields)
+    const rows = text.trim().split('\n');
+    const headers = rows[0].split(',');
+    const secondRow = rows[1].split(',');
+
+    // Set text in NOW SPOTTING columns, match header order you gave
+    // Flight Number, Airline, Aircraft, Route
+    // Find indexes dynamically:
+    const flightIdx = headers.findIndex((h) => h.toLowerCase() === 'flight number');
+    const airlineIdx = headers.findIndex((h) => h.toLowerCase() === 'airline');
+    const aircraftIdx = headers.findIndex((h) => h.toLowerCase() === 'aircraft');
+    const routeIdx = headers.findIndex((h) => h.toLowerCase() === 'route');
+
+    flightNumberEl.textContent = secondRow[flightIdx] || '-';
+    airlineEl.textContent = secondRow[airlineIdx] || '-';
+    aircraftEl.textContent = secondRow[aircraftIdx] || '-';
+    routeEl.textContent = secondRow[routeIdx] || '-';
+  } catch (err) {
+    console.error('Error fetching Google Sheet:', err);
+    flightNumberEl.textContent = '-';
+    airlineEl.textContent = '-';
+    aircraftEl.textContent = '-';
+    routeEl.textContent = '-';
+  }
 }
 
-#control-panel h2 {
-  margin-bottom: 10px;
-  font-size: 18px;
+// Update live time every second
+function updateTime() {
+  const now = new Date();
+  currentTimeEl.textContent = now.toLocaleTimeString('en-US', { hour12: false });
 }
 
-#control-panel label {
-  display: block;
-  margin-bottom: 10px;
+// Fetch live weather from OpenWeatherMap API for San Diego
+async function fetchWeather() {
+  if (!weatherApiKey) {
+    weatherInfoEl.textContent = 'No weather API key';
+    return;
+  }
+
+  try {
+    // San Diego city ID: 5391811 (OpenWeatherMap)
+    const url = `https://api.openweathermap.org/data/2.5/weather?id=5391811&appid=${weatherApiKey}&units=imperial`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.weather || !data.main) {
+      weatherInfoEl.textContent = 'Weather data unavailable';
+      return;
+    }
+
+    const description = data.weather[0].description.toUpperCase();
+    const temp = Math.round(data.main.temp);
+    weatherInfoEl.textContent = `${description} | ${temp}°F`;
+  } catch (err) {
+    console.error('Error fetching weather:', err);
+    weatherInfoEl.textContent = 'Error loading weather';
+  }
 }
 
-#control-panel input {
-  width: 100%;
-  padding: 5px;
-  margin-top: 4px;
-  border-radius: 4px;
-  border: none;
-  font-family: 'League Spartan', sans-serif;
-  font-size: 14px;
+// Animate flight ticker (scrolling text)
+function animateTicker() {
+  const containerWidth = flightTicker.parentElement.offsetWidth;
+  const textWidth = flightTicker.scrollWidth;
+
+  tickerPosition -= 1; // Move left 1px per frame, adjust for speed later
+
+  if (-tickerPosition > textWidth) {
+    tickerPosition = containerWidth;
+  }
+
+  flightTicker.style.transform = `translateX(${tickerPosition}px)`;
+
+  tickerAnimationFrame = setTimeout(animateTicker, tickerSpeed);
 }
 
-#control-panel button {
-  padding: 8px 12px;
-  background-color: #1a73e8;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  color: white;
-  font-weight: 700;
+// Apply control panel settings and start fetching data
+function applySettings() {
+  aviationApiKey = aviationInput.value.trim();
+  googleSheetCsv = googleSheetInput.value.trim();
+  weatherApiKey = weatherInput.value.trim();
+  tickerSpeed = parseInt(tickerSpeedInput.value, 10) || 50;
+
+  clearTimeout(tickerAnimationFrame);
+
+  fetchFlights();
+  fetchSheetData();
+  fetchWeather();
+
+  animateTicker();
 }
 
-/* NOW SPOTTING BOX */
-#now-spotting {
-  position: fixed;
-  left: 20px;
-  top: 20%;
-  background: #1f2b47;
-  border-radius: 12px;
-  padding: 15px 20px;
-  width: 22vw;
-  min-width: 280px;
-  max-width: 350px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  z-index: 5;
-}
+// Initial setup
+initControls();
+applySettings();
+updateTime();
+setInterval(updateTime, 1000); // Update clock every second
 
-#now-spotting-header {
-  font-weight: 700;
-  font-size: 18px;
-  margin-bottom: 12px;
-  text-align: center;
-  letter-spacing: 1.5px;
-}
+// Refresh flights and sheet data every 30 minutes (1800000 ms)
+setInterval(() => {
+  fetchFlights();
+  fetchSheetData();
+}, 1800000);
 
-#spotting-content {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
+// Refresh weather every 1 hour (3600000 ms)
+setInterval(() => {
+  fetchWeather();
+}, 3600000);
 
-#headers-column div,
-#data-column div {
-  margin-bottom: 10px;
-  font-size: 16px;
-}
-
-/* Time & Weather box */
-#time-weather {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #1f2b47;
-  border-radius: 10px;
-  padding: 10px 15px;
-  min-width: 140px;
-  max-width: 180px;
-  box-shadow: 0 0 8px rgba(0,0,0,0.4);
-  font-size: 14px;
-  text-align: center;
-  z-index: 5;
-}
-
-#current-time {
-  font-weight: 700;
-  font-size: 20px;
-  margin-bottom: 6px;
-}
-
-/* Flight ticker */
-#flight-ticker-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: #1f2b47;
-  overflow: hidden;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.4);
-  z-index: 5;
-}
-
-#flight-ticker {
-  white-space: nowrap;
-  display: inline-block;
-  padding-left: 100%;
-  will-change: transform;
-  font-size: 16px;
-  font-weight: 600;
-}
+applyBtn.addEventListener('click', applySettings);
