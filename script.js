@@ -1,97 +1,181 @@
-// ===== CONSTANTS =====
-const googleSheetCsv = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTm21g5xvevVszFZYv8ajDgZ0IuMvQh3BgtgzbL_WH4QoqB_4LUO7yI2csaFTDj41vGqJVGGO5NR0Ns/pub?gid=679478748&single=true&output=csv';
-const weatherApiKey = '5fb5688ea7730de79b414572ecbb2638';
+/* -----------------------------------------------------------
+   FINAL: script.js
+   - Now Spotting (top-left) updates every 15s from the CSV
+   - Weather (Weatherstack) via AllOrigins HTTPS proxy -> updates hourly
+   - Time updates every second
+   - Ticker displays your custom message and scrolls
+   ----------------------------------------------------------- */
 
-// ===== ELEMENT REFERENCES =====
-const currentTimeEl = document.getElementById('current-time');
-const weatherInfoEl = document.getElementById('weather-info');
-const flightTickerEl = document.getElementById('flight-ticker');
+/* ===== CONFIG - DO NOT CHANGE BELOW UNLESS YOU KNOW WHAT YOU'RE DOING ===== */
+const GOOGLE_SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTm21g5xvevVszFZYv8ajDgZ0IuMvQh3BgtgzbL_WH4QoqB_4LUO7yI2csaFTDj41vGqJVGGO5NR0Ns/pub?gid=679478748&single=true&output=csv';
+const WEATHERSTACK_KEY = '5fb5688ea7730de79b414572ecbb2638';
 
-// ===== UPDATE TIME =====
+/* Use AllOrigins as a simple HTTPS proxy to avoid mixed-content / CORS issues.
+   This proxies the Weatherstack HTTP endpoint over HTTPS:
+   https://api.allorigins.win/raw?url=<encoded-weatherstack-url>
+*/
+const WEATHERSTACK_PROXY_PREFIX = 'https://api.allorigins.win/raw?url=';
+
+/* Polling intervals */
+const SHEET_POLL_MS = 15000;     // 15 seconds for near-immediate sheet updates
+const WEATHER_POLL_MS = 3600000; // 1 hour for weather
+
+/* ===== DOM references (will be set after DOM ready) ===== */
+let nowLeftEl, nowRightEl, weatherInfoEl, currentTimeEl, flightTickerEl;
+
+/* ===== Minimal CSV row parser for basic CSV (handles quoted fields) ===== */
+function parseCsvRow(line) {
+  const result = [];
+  let cur = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      // If next char is also a quote, it's an escaped quote
+      if (inQuotes && line[i + 1] === '"') {
+        cur += '"';
+        i++; // skip next quote
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === ',' && !inQuotes) {
+      result.push(cur);
+      cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  result.push(cur);
+  return result.map(s => s.trim());
+}
+
+/* ===== Now Spotting: fetch CSV, show headers (left) and second row (right) only ===== */
+async function fetchAndRenderSheet() {
+  try {
+    const res = await fetch(GOOGLE_SHEET_CSV, { cache: "no-store" }); // try to avoid cached responses
+    if (!res.ok) {
+      console.error('Sheet fetch failed:', res.status, res.statusText);
+      return;
+    }
+    const text = await res.text();
+
+    // Normalize line endings and split into rows
+    const rows = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').map(r => r.trim()).filter(r => r.length > 0);
+    if (rows.length === 0) {
+      console.warn('Sheet CSV empty');
+      return;
+    }
+
+    const headers = parseCsvRow(rows[0]);
+    const secondRow = rows[1] ? parseCsvRow(rows[1]) : [];
+
+    // Clear previous
+    nowLeftEl.innerHTML = '';
+    nowRightEl.innerHTML = '';
+
+    // Populate columns using headers length but only values from row 2
+    for (let i = 0; i < headers.length; i++) {
+      const headerDiv = document.createElement('div');
+      headerDiv.textContent = headers[i].toUpperCase();
+      headerDiv.setAttribute('aria-hidden', 'true');
+      nowLeftEl.appendChild(headerDiv);
+
+      const val = secondRow[i] && secondRow[i].trim() !== '' ? secondRow[i] : '-';
+      const valDiv = document.createElement('div');
+      valDiv.textContent = val;
+      nowRightEl.appendChild(valDiv);
+    }
+
+  } catch (err) {
+    console.error('Error loading sheet CSV:', err);
+  }
+}
+
+/* ===== Weather: use Weatherstack proxied through AllOrigins to avoid HTTPS/CORS issues ===== */
+async function fetchWeatherStack() {
+  if (!WEATHERSTACK_KEY || WEATHERSTACK_KEY.trim() === '') {
+    weatherInfoEl.textContent = 'NO WEATHER API KEY';
+    return;
+  }
+
+  try {
+    // Weatherstack raw URL (http). AllOrigins will fetch it and return raw JSON over HTTPS.
+    const wsUrl = `http://api.weatherstack.com/current?access_key=${encodeURIComponent(WEATHERSTACK_KEY)}&query=San Diego`;
+    const proxyUrl = WEATHERSTACK_PROXY_PREFIX + encodeURIComponent(wsUrl);
+
+    const res = await fetch(proxyUrl, { cache: "no-store" });
+    if (!res.ok) {
+      console.error('Weather proxy fetch failed:', res.status, res.statusText);
+      weatherInfoEl.textContent = 'WEATHER ERROR';
+      return;
+    }
+
+    const data = await res.json();
+    // If Weatherstack returns an error object it will include "error"
+    if (!data || data.error) {
+      console.warn('Weatherstack returned error:', data && data.error);
+      weatherInfoEl.textContent = 'WEATHER DATA UNAVAILABLE';
+      return;
+    }
+
+    // Weatherstack returns current.temperature and current.weather_descriptions (array)
+    const current = data.current;
+    if (!current || typeof current.temperature !== 'number' || !Array.isArray(current.weather_descriptions)) {
+      weatherInfoEl.textContent = 'WEATHER DATA UNAVAILABLE';
+      return;
+    }
+
+    const desc = (current.weather_descriptions[0] || '').toUpperCase();
+    const temp = Math.round(current.temperature);
+    weatherInfoEl.textContent = `${desc} | ${temp}°F`;
+
+  } catch (err) {
+    console.error('Error fetching weather:', err);
+    weatherInfoEl.textContent = 'ERROR LOADING WEATHER';
+  }
+}
+
+/* ===== Time updater ===== */
 function updateTime() {
   if (!currentTimeEl) return;
   const now = new Date();
   currentTimeEl.textContent = now.toLocaleTimeString('en-US', { hour12: false });
 }
 
-// ===== FETCH AND DISPLAY WEATHER =====
-async function fetchWeather() {
-  if (!weatherApiKey) {
-    weatherInfoEl.textContent = 'NO WEATHER API KEY';
-    return;
-  }
-  try {
-    const url = `http://api.weatherstack.com/current?access_key=${weatherApiKey}&query=San Diego`;
-    const res = await fetch(url);
-    const data = await res.json();
-    console.log('Weather API data:', data);
-
-    if (!data.current) {
-      weatherInfoEl.textContent = 'WEATHER DATA UNAVAILABLE';
-      return;
-    }
-
-    const description = data.current.weather_descriptions[0].toUpperCase();
-    const temp = Math.round(data.current.temperature);
-    weatherInfoEl.textContent = `${description} | ${temp}°F`;
-  } catch (error) {
-    console.error('Error fetching weather:', error);
-    weatherInfoEl.textContent = 'ERROR LOADING WEATHER';
-  }
-}
-
-// ===== FETCH AND DISPLAY NOW SPOTTING DATA =====
-async function fetchFlights() {
-  try {
-    const res = await fetch(googleSheetCsv);
-    const csvText = await res.text();
-
-    // Normalize line breaks and split rows
-    const rows = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim().split('\n');
-
-    const headers = rows[0].split(',');
-    const dataRow = rows[1] ? rows[1].split(',') : [];
-
-    // Elements for the left and right columns
-    const leftCol = document.getElementById('now-spotting-left');
-    const rightCol = document.getElementById('now-spotting-right');
-
-    leftCol.innerHTML = '';
-    rightCol.innerHTML = '';
-
-    for (let i = 0; i < headers.length; i++) {
-      // Header cell
-      const headerEl = document.createElement('div');
-      headerEl.textContent = headers[i].toUpperCase();
-      leftCol.appendChild(headerEl);
-
-      // Data cell (show dash if empty)
-      const dataEl = document.createElement('div');
-      dataEl.textContent = dataRow[i] && dataRow[i].trim() !== '' ? dataRow[i] : '-';
-      rightCol.appendChild(dataEl);
-    }
-  } catch (error) {
-    console.error('Error fetching/parsing CSV:', error);
-  }
-}
-
-// ===== SET CUSTOM TICKER TEXT =====
-function setCustomTickerText() {
+/* ===== Ticker: set your exact custom text ===== */
+function setTickerText() {
   if (!flightTickerEl) return;
+  // exact message requested:
   flightTickerEl.textContent = 'WELCOME TO SAN DIEGO PLANESPOTTING! LIVE FROM THE LAUREL TRAVEL CENTER ON LAUREL ST & KETTNER BLVD IN DOWNTOWN SAN DIEGO.';
+  // adjust animation duration depending on text length (optional)
+  // If you want a slower/faster scroll, modify CSS animation duration in style.css
 }
 
-// ===== INITIALIZATION =====
+/* ===== Initialize after DOM ready ===== */
 document.addEventListener('DOMContentLoaded', () => {
+  // set DOM references (safe to query now)
+  nowLeftEl = document.getElementById('now-spotting-left');
+  nowRightEl = document.getElementById('now-spotting-right');
+  weatherInfoEl = document.getElementById('weather-info');
+  currentTimeEl = document.getElementById('current-time');
+  flightTickerEl = document.getElementById('flight-ticker');
+
+  // sanity checks
+  if (!nowLeftEl || !nowRightEl) console.error('Now spotting column elements missing from DOM.');
+  if (!weatherInfoEl) console.error('Weather element missing from DOM.');
+  if (!currentTimeEl) console.error('Time element missing from DOM.');
+  if (!flightTickerEl) console.error('Ticker element missing from DOM.');
+
+  // initial run
   updateTime();
-  setInterval(updateTime, 1000);     // update time every second
+  setInterval(updateTime, 1000);
 
-  fetchWeather();
-  setInterval(fetchWeather, 3600000); // update weather every hour
+  fetchAndRenderSheet();
+  setInterval(fetchAndRenderSheet, SHEET_POLL_MS); // poll for sheet updates
 
-  fetchFlights();
-  // Could add interval to refresh flights, e.g., every 30 mins if needed
-  // setInterval(fetchFlights, 1800000);
+  fetchWeatherStack();
+  setInterval(fetchWeatherStack, WEATHER_POLL_MS);
 
-  setCustomTickerText();
+  setTickerText();
 });
