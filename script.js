@@ -13,7 +13,8 @@ function setCustomTickerText(text) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  setCustomTickerText('WELCOME TO SAN DIEGO PLANESPOTTING, LIVE FROM THE LAUREL TRAVEL CENTER ON LAUREL ST & KETTNER BLVD IN DOWNTOWN SAN DIEGO!');
+  const ticker = document.getElementById('flight-ticker');
+  ticker.textContent = 'WELCOME TO SAN DIEGO PLANESPOTTING! LIVE FROM THE LAUREL TRAVEL CENTER ON LAUREL ST & KETTNER BLVD IN DOWNTOWN SAN DIEGO.';
 });
 
 // ===== DOM ELEMENTS =====
