@@ -1,11 +1,20 @@
 // ===== CONFIG SECTION =====
 // Replace these with your actual keys & links:
-const aviationApiKey = 'ba001d604284a700ba4b2c54f5d3b7ff';    // <-- Replace this
 const googleSheetCsv = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTm21g5xvevVszFZYv8ajDgZ0IuMvQh3BgtgzbL_WH4QoqB_4LUO7yI2csaFTDj41vGqJVGGO5NR0Ns/pub?gid=679478748&single=true&output=csv';    // <-- Replace this
 const weatherApiKey = '5fb5688ea7730de79b414572ecbb2638';    // <-- Replace this
 
 const weatherCityId = 5391811; // San Diego city ID for OpenWeatherMap
 const weatherUnits = 'imperial'; // 'imperial' for °F, 'metric' for °C
+
+const flightTickerEl = document.getElementById('flight-ticker');
+
+function setCustomTickerText(text) {
+  flightTickerEl.textContent = text;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setCustomTickerText('WELCOME TO SAN DIEGO PLANESPOTTING, LIVE FROM THE LAUREL TRAVEL CENTER ON LAUREL ST & KETTNER BLVD IN DOWNTOWN SAN DIEGO!');
+});
 
 // ===== DOM ELEMENTS =====
 const currentTimeEl = document.getElementById('current-time');
@@ -45,8 +54,35 @@ async function fetchWeather() {
 
 // ===== FLIGHT DATA FUNCTION (placeholder) =====
 async function fetchFlights() {
-  console.log('Fetching flight data...');
-  // TODO: Add your AviationStack API fetch code here using aviationApiKey and googleSheetCsv
+  try {
+    const res = await fetch(googleSheetCsv);
+    const csvText = await res.text();
+
+    const rows = csvText.trim().split('\n');
+
+    const headers = rows[0].split(',');
+    const dataRow = rows[1] ? rows[1].split(',') : [];
+
+    const leftCol = document.getElementById('now-spotting-left');
+    const rightCol = document.getElementById('now-spotting-right');
+
+    leftCol.innerHTML = '';
+    rightCol.innerHTML = '';
+
+    for (let i = 0; i < headers.length; i++) {
+      const headerEl = document.createElement('div');
+      headerEl.textContent = headers[i].toUpperCase();
+      leftCol.appendChild(headerEl);
+
+      const dataEl = document.createElement('div');
+      dataEl.textContent = dataRow[i] || '';
+      rightCol.appendChild(dataEl);
+    }
+  } catch (error) {
+    console.error('Error fetching or parsing Google Sheet CSV:', error);
+  }
+}
+
 }
 
 // ===== INIT FUNCTIONS ON DOM LOAD =====
@@ -59,7 +95,9 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchWeather();
   setInterval(fetchWeather, 3600000); // 3600000ms = 1 hour
 
-  // Fetch flight data immediately and every 30 minutes
+  document.addEventListener('DOMContentLoaded', () => {
   fetchFlights();
-  setInterval(fetchFlights, 1800000); // 1800000ms = 30 minutes
+  // add any other startup functions here, like updateTime() or ticker setup
 });
+
+
